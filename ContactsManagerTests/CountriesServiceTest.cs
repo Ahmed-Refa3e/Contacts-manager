@@ -6,7 +6,7 @@ namespace ContactsManagerTests
 {
     public class CountriesServiceTest
     {
-        private readonly ICountriesService _countriesService;
+        private readonly CountriesService _countriesService;
         public CountriesServiceTest()
         {
             _countriesService = new CountriesService();
@@ -59,9 +59,23 @@ namespace ContactsManagerTests
             CountryResponse response = _countriesService.AddCountry(request);
 
             //Assert
-            Assert.NotNull(response);
             Assert.NotEqual(Guid.Empty, response.CountryID);
             Assert.Equal("Egypt", response.CountryName);
+        }
+
+        //When CountryAddRequest is null, it should throw ArgumentNullException
+        [Fact]
+        public void AddCountry_NullRequest()
+        {
+            //Arrange
+            CountryAddRequest? request = null;
+
+            //Assert
+            Assert.Throws<ArgumentException>(() =>
+            {
+                //Act
+                _countriesService.AddCountry(request);
+            });
         }
 
     }
