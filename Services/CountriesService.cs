@@ -7,6 +7,7 @@ namespace Services
     public class CountriesService : ICountriesService
     {
         private readonly List<Country> _countries = [];
+
         public CountryResponse AddCountry(CountryAddRequest? request)
         {
             
@@ -32,6 +33,28 @@ namespace Services
             country.CountryName = request.CountryName;
 
             _countries.Add(country);
+
+            return country.ToCountryResponse();
+        }
+
+        public List<CountryResponse> GetAllCountries()
+        {
+            return _countries.Select(country => country.ToCountryResponse()).ToList();
+        }
+
+        public CountryResponse? GetCountryByCountryID(Guid? CountryID)
+        {
+            if (CountryID == null)
+            {
+                return null;
+            }
+
+            Country? country = _countries.FirstOrDefault(c => c.CountryID == CountryID);
+
+            if (country == null)
+            {
+                return null;
+            }
 
             return country.ToCountryResponse();
         }
