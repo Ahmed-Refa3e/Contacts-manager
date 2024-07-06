@@ -136,7 +136,7 @@ namespace ContactsManagerTests
 
             //Assert
             Assert.NotNull(country);
-            Assert.Equal("Egypt", country.CountryName);
+            Assert.Equal(response.CountryName, country.CountryName);
             Assert.Equal(response.CountryID, country.CountryID);
         }
 
