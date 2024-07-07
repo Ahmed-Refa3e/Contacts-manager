@@ -51,7 +51,34 @@ namespace Services
         }
         public List<PersonResponse> GetAllPersons()
         {
-            return _people.Select(p => ConvertPersonToPersonResponse(p)).ToList();
+            return _people.Select(person => ConvertPersonToPersonResponse(person)).ToList();
         }
+        public List<PersonResponse> GetFilteredPersons(string SearchBy, string SearchValue)
+        {
+            List<PersonResponse> filteredPeople = new();
+            List<PersonResponse> AllPeople = GetAllPersons();
+
+            if (string.IsNullOrEmpty(SearchBy) || string.IsNullOrEmpty(SearchValue))
+            {
+                return filteredPeople = AllPeople;
+            }
+            switch (SearchBy)
+            {
+                case nameof(Person.PersonName):
+                    filteredPeople = AllPeople.Where(p => (p.PersonName != null) && p.PersonName.Contains(SearchValue, StringComparison.OrdinalIgnoreCase)).ToList(); break;
+                case nameof(Person.Address):
+                    filteredPeople = AllPeople.Where(p => (p.Address != null) && p.Address.Contains(SearchValue, StringComparison.OrdinalIgnoreCase)).ToList(); break;
+                case nameof(Person.DateOfBirth):
+                    filteredPeople = AllPeople.Where(p => (p.DateOfBirth != null) && p.DateOfBirth.Value.ToString().Contains(SearchValue, StringComparison.OrdinalIgnoreCase)).ToList();break;
+                case nameof(Person.Email):
+                    filteredPeople = AllPeople.Where(p => (p.Email != null) && p.Email.Contains(SearchValue, StringComparison.OrdinalIgnoreCase)).ToList(); break;
+                case nameof(Person.Gender):
+                    filteredPeople = AllPeople.Where(p => (p.Gender != null) && p.Gender.Contains(SearchValue, StringComparison.OrdinalIgnoreCase)).ToList(); break;
+                case nameof(Person.CountryID):
+                    filteredPeople = AllPeople.Where(p => (p.CountryID != null) && p.CountryID.Value.ToString().Contains(SearchValue, StringComparison.OrdinalIgnoreCase)).ToList(); break;
+                default: filteredPeople = AllPeople; break;
+            }
+            return filteredPeople;
+        } 
     }
 }
