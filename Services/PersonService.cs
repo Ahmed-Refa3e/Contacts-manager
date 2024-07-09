@@ -3,7 +3,12 @@ using ServiceContracts;
 using ServiceContracts.DTO;
 using ServiceContracts.Enums;
 using Services.Helpers;
+using System.Buffers.Text;
+using System.ComponentModel;
+using System.Globalization;
 using System.Reflection;
+using System.Runtime.ConstrainedExecution;
+using System.Xml.Linq;
 
 namespace Services
 {
@@ -59,40 +64,56 @@ namespace Services
         {
             List<PersonResponse> filteredPeople = new();
             List<PersonResponse> AllPeople = GetAllPersons();
-
             if (string.IsNullOrEmpty(SearchBy) || string.IsNullOrEmpty(SearchValue))
             {
-                return filteredPeople = AllPeople;
+                return AllPeople;
             }
-            switch (SearchBy)
+
+            //typeof(PersonResponse): Gets the type object for the PersonResponse class.
+            //GetProperty: Retrieves the PropertyInfo object for the property specified by sortBy.
+            //BindingFlags.IgnoreCase: Ensures that the property name comparison is case-insensitive.
+            //BindingFlags.Public: Ensures that only public properties are considered.
+            //BindingFlags.Instance: Ensures that only instance properties are considered(not static properties).
+
+            PropertyInfo? propertyInfo = typeof(PersonResponse).GetProperty(SearchBy, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+            if (propertyInfo == null)
             {
-                case nameof(Person.PersonName):
-                    filteredPeople = AllPeople.Where(p => (p.PersonName != null) && p.PersonName.Contains(SearchValue, StringComparison.OrdinalIgnoreCase)).ToList(); break;
-                case nameof(Person.Address):
-                    filteredPeople = AllPeople.Where(p => (p.Address != null) && p.Address.Contains(SearchValue, StringComparison.OrdinalIgnoreCase)).ToList(); break;
-                case nameof(Person.DateOfBirth):
-                    filteredPeople = AllPeople.Where(p => (p.DateOfBirth != null) && p.DateOfBirth.Value.ToString().Contains(SearchValue, StringComparison.OrdinalIgnoreCase)).ToList();break;
-                case nameof(Person.Email):
-                    filteredPeople = AllPeople.Where(p => (p.Email != null) && p.Email.Contains(SearchValue, StringComparison.OrdinalIgnoreCase)).ToList(); break;
-                case nameof(Person.Gender):
-                    filteredPeople = AllPeople.Where(p => (p.Gender != null) && p.Gender.Contains(SearchValue, StringComparison.OrdinalIgnoreCase)).ToList(); break;
-                case nameof(Person.CountryID):
-                    filteredPeople = AllPeople.Where(p => (p.CountryID != null) && p.CountryID.Value.ToString().Contains(SearchValue, StringComparison.OrdinalIgnoreCase)).ToList(); break;
-                default: filteredPeople = AllPeople; break;
+                return AllPeople;
+            }
+            foreach (PersonResponse person in AllPeople)
+            {
+                //Retrieves the value of the specified property(SearchBy) from the current person object and converts it to a string.
+                string? value = propertyInfo.GetValue(person, null)?.ToString();
+
+                //value.ToLower(CultureInfo.InvariantCulture).Contains(SearchValue.ToLower(CultureInfo.InvariantCulture)):
+                //Converts both value and SearchValue to lowercase(using invariant culture for consistency) and checks if value contains SearchValue.
+                if (value != null && value.ToLower(CultureInfo.InvariantCulture).Contains(SearchValue.ToLower(CultureInfo.InvariantCulture)))
+                {
+                    //If the condition is true, the person object is added to the filteredPeople list.
+                    filteredPeople.Add(person);
+                }
             }
             return filteredPeople;
         }
-
         public List<PersonResponse> GetSortedPersons(List<PersonResponse> persons, string sortBy, SortOrderOptions sortOrder)
         {
             //using reflection to sort the list of persons based on the property name
             if (string.IsNullOrEmpty(sortBy))
                 return persons;
 
+            //typeof(PersonResponse): Gets the type object for the PersonResponse class.
+            //GetProperty: Retrieves the PropertyInfo object for the property specified by sortBy.
+            //BindingFlags.IgnoreCase: Ensures that the property name comparison is case-insensitive.
+            //BindingFlags.Public: Ensures that only public properties are considered.
+            //BindingFlags.Instance: Ensures that only instance properties are considered(not static properties).
+
             PropertyInfo? propertyInfo = typeof(PersonResponse).GetProperty(sortBy, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 
             if (propertyInfo == null)
                 return persons;
+
+            //Checks if the sort order is ascending Orders the list in ascending order based on the value of the property retrieved
+            //if the sort order is descending Orders the list in descending order based on the value of the property retrieved
 
             return sortOrder == SortOrderOptions.Ascending
                 ? persons.OrderBy(p => propertyInfo.GetValue(p, null)).ToList()
