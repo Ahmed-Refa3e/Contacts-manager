@@ -1,7 +1,9 @@
 ﻿using Entities;
 using ServiceContracts;
 using ServiceContracts.DTO;
+using ServiceContracts.Enums;
 using Services.Helpers;
+using System.Reflection;
 
 namespace Services
 {
@@ -79,6 +81,22 @@ namespace Services
                 default: filteredPeople = AllPeople; break;
             }
             return filteredPeople;
-        } 
+        }
+
+        public List<PersonResponse> GetSortedPersons(List<PersonResponse> persons, string sortBy, SortOrderOptions sortOrder)
+        {
+            //using reflection to sort the list of persons based on the property name
+            if (string.IsNullOrEmpty(sortBy))
+                return persons;
+
+            PropertyInfo? propertyInfo = typeof(PersonResponse).GetProperty(sortBy, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+
+            if (propertyInfo == null)
+                return persons;
+
+            return sortOrder == SortOrderOptions.Ascending
+                ? persons.OrderBy(p => propertyInfo.GetValue(p, null)).ToList()
+                : persons.OrderByDescending(p => propertyInfo.GetValue(p, null)).ToList();
+        }
     }
 }

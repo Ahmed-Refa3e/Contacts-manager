@@ -282,5 +282,52 @@ namespace ContactsManagerTests
             Assert.Contains(people1, p => p.PersonName == "Ahmed");
         }
         #endregion
+
+        #region sortedPersons
+        //if we supply proper input, it should return a list of persons sorted by the specified property in the specified order
+        [Fact]
+        public void GetSortedPersons_properInput() 
+        {
+            //Arrange
+            CountryAddRequest countryRequest = new()
+            {
+                CountryName = "Egypt"
+            };
+            CountryResponse? country_response = _countriesService?.AddCountry(countryRequest);
+            PersonAddRequest request1 = new()
+            {
+                PersonName = "Ahmed",
+                DateOfBirth = new DateTime(1990, 1, 1),
+                Email = "Ahmed@example.com",
+                Gender = Gender.male,
+                Address = "Cairo",
+                CountryID = country_response?.CountryID,
+                ReceiveNewsLetters = true
+            };
+            PersonAddRequest request2 = new()
+            {
+                PersonName = "Mohamed",
+                DateOfBirth = new DateTime(1995, 1, 1),
+                Email = "Mohamed@example.com",
+                Gender = Gender.male,
+                Address = "Tanta",
+                CountryID = country_response?.CountryID,
+                ReceiveNewsLetters = true
+            };
+
+            //Act
+            _personService?.AddPerson(request1);
+            _personService?.AddPerson(request2);
+            List<PersonResponse>? people = _personService?.GetAllPersons();
+            List<PersonResponse>? SortedPeople = _personService?.GetSortedPersons(people,nameof(Person.PersonName),SortOrderOptions.Ascending);
+
+            //Assert
+            Assert.NotNull(SortedPeople);
+            Assert.NotNull(people);
+            Assert.Equal(people[0].PersonName, SortedPeople[0].PersonName);
+
+
+        }
+        #endregion
     }
 }
