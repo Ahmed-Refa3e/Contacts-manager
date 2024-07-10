@@ -3,12 +3,8 @@ using ServiceContracts;
 using ServiceContracts.DTO;
 using ServiceContracts.Enums;
 using Services.Helpers;
-using System.Buffers.Text;
-using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
-using System.Runtime.ConstrainedExecution;
-using System.Xml.Linq;
 
 namespace Services
 {
@@ -118,6 +114,44 @@ namespace Services
             return sortOrder == SortOrderOptions.Ascending
                 ? persons.OrderBy(p => propertyInfo.GetValue(p, null)).ToList()
                 : persons.OrderByDescending(p => propertyInfo.GetValue(p, null)).ToList();
+        }
+        public PersonResponse UpdatePerson(PersonUpdateRequest? request)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+            //Model validations
+            ValidationHelper.ModelValidation(request);
+            Person? person = _people.FirstOrDefault(p => p.PersonID == request.PersonID);
+            if (person == null)
+            {
+                throw new ArgumentException("PersonID doesn't exist");
+            }
+            //updating the person object
+            person.PersonName = request.PersonName;
+            person.DateOfBirth = request.DateOfBirth;
+            person.Email = request.Email;
+            person.ReceiveNewsLetters = request.ReceiveNewsLetters;
+            person.Address = request.Address;
+            person.CountryID = request.CountryID;
+            person.Gender = request.Gender.ToString();
+
+            return ConvertPersonToPersonResponse(person);
+        }
+        public bool DeletePerson(Guid? PersonID)
+        {
+            if (PersonID == null)
+            {
+                throw new ArgumentNullException(nameof(PersonID));
+            }
+            Person? person = _people.FirstOrDefault(p => p.PersonID == PersonID);
+            if (person == null)
+            {
+                return false;
+            }
+            _people.Remove(person);
+            return true;
         }
     }
 }

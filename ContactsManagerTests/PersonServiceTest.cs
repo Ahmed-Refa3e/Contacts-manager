@@ -329,5 +329,143 @@ namespace ContactsManagerTests
 
         }
         #endregion
+
+        #region UpdatePerson
+        //if we supply null request, it should throw ArgumentNullException
+        [Fact]
+        public void UpdatePerson_NullRequest()
+        {
+            //Arrange
+            PersonUpdateRequest? request = null;
+
+            //Assert
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                //Act
+                _personService?.UpdatePerson(request);
+            });
+        }
+        //if we supply a person id that does not exist, it should return argument exception
+        [Fact]
+        public void UpdatePerson_PersonIDDoesNotExist()
+        {
+            //Arrange
+            PersonUpdateRequest request = new()
+            {
+                PersonID = Guid.NewGuid()
+            };
+
+            //Assert
+            Assert.Throws<ArgumentException>(() =>
+            {
+                //Act
+                _personService?.UpdatePerson(request);
+            });
+        }
+        //if we supply proper request, it should update the person
+        [Fact]
+        public void UpdatePerson_ProperRequest()
+        {
+            //Arrange
+            CountryAddRequest countryRequest = new()
+            {
+                CountryName = "Egypt"
+            };
+            CountryResponse? country_response = _countriesService?.AddCountry(countryRequest);
+            PersonAddRequest request1 = new()
+            {
+                PersonName = "Ahmed",
+                DateOfBirth = new DateTime(1990, 1, 1),
+                Email = "Ahmed@example.com",
+                Gender = Gender.male,
+                Address = "Cairo",
+                CountryID = country_response?.CountryID,
+                ReceiveNewsLetters = true
+            };
+
+            //Act
+            PersonResponse? addedPerson1 = _personService?.AddPerson(request1);
+            PersonUpdateRequest UpdateRequest = new()
+            {
+                PersonID = addedPerson1.PersonID,
+                PersonName = "Ali",
+                DateOfBirth = new DateTime(1990, 1, 1),
+                Email = "Ali@example.com",
+                Gender = Gender.male,
+                Address = "Cairo",
+                CountryID = country_response?.CountryID,
+                ReceiveNewsLetters = true
+            };
+            _personService?.UpdatePerson(UpdateRequest);
+            PersonResponse? person = _personService?.GetPersonByPersonID(addedPerson1.PersonID);
+
+            //Assert
+            Assert.NotNull(person);
+            Assert.Equal(UpdateRequest.PersonName, person.PersonName);
+            Assert.Equal(UpdateRequest.Email, person.Email);
+        }
+        #endregion
+
+        #region DeletePerson
+        //if we supply null person id, it should throw ArgumentNullException
+        [Fact]
+        public void DeletePerson_NullPersonID()
+        {
+            //Arrange
+            Guid? personID = null;
+
+            //Assert
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                //Act
+                _personService?.DeletePerson(personID);
+            });
+        }
+        //if we supply a person id that does not exist, it should return false
+        [Fact]
+        public void DeletePerson_PersonIDDoesNotExist()
+        {
+            //Arrange
+            Guid personID = Guid.NewGuid();
+
+            //Act
+            bool isDeleted = _personService?.DeletePerson(personID) ?? false;
+
+            //Assert
+            Assert.False(isDeleted);
+        }
+        //if we supply a person id that exists, it should return true
+        [Fact]
+        public void DeletePerson_PersonIDExists()
+        {
+            //Arrange
+            CountryAddRequest countryRequest = new()
+            {
+                CountryName = "Egypt"
+            };
+            CountryResponse? country_response = _countriesService?.AddCountry(countryRequest);
+            PersonAddRequest request1 = new()
+            {
+                PersonName = "Ahmed",
+                DateOfBirth = new DateTime(1990, 1, 1),
+                Email = "Ahmed@example.com",
+                Gender = Gender.male,
+                Address = "Cairo",
+                CountryID = country_response?.CountryID,
+                ReceiveNewsLetters = true
+            };
+
+            //Act
+            PersonResponse? addedPerson = _personService?.AddPerson(request1);
+            bool isDeleted = _personService?.DeletePerson(addedPerson?.PersonID) ?? false;
+            PersonResponse? person = _personService?.GetPersonByPersonID(addedPerson?.PersonID);
+            List<PersonResponse>? people = _personService?.GetAllPersons();
+
+            //Assert
+            Assert.True(isDeleted);
+            Assert.Null(person);
+            Assert.True(people?.Count == 0);
+        }
+        #endregion
     }
 }

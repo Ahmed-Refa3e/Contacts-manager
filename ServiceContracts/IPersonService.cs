@@ -1,5 +1,6 @@
 ﻿using ServiceContracts.DTO;
 using ServiceContracts.Enums;
+using System.Data;
 
 namespace ServiceContracts
 {
@@ -38,5 +39,17 @@ namespace ServiceContracts
         /// <param name="sortOrder">sort the list (ascending or descending)</param>
         /// <returns></returns>
         List<PersonResponse> GetSortedPersons(List <PersonResponse> persons, string sortBy,  SortOrderOptions sortOrder);
+        /// <summary>
+        /// updates the person based on personID in the request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns>returns object of person response</returns>
+        PersonResponse UpdatePerson(PersonUpdateRequest? request);
+        /// <summary>
+        /// Deletes the person based on personID
+        /// </summary>
+        /// <param name="PersonID"></param>
+        /// <returns>returns true if the person is deleted successfully otherwise returns false </returns>
+        bool DeletePerson(Guid? PersonID);
     }
 }
