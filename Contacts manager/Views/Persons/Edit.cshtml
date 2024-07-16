@@ -1,0 +1,125 @@
+﻿@model PersonUpdateRequest
+
+@{
+    ViewBag.Title = "Edit Person";
+}
+
+<a asp-controller="Persons" asp-action="Index" style="text-decoration: underline; cursor: pointer;">Back to Persons List</a>
+<h2>Edit Person</h2>
+
+<div style="margin: auto; width: 50%;">
+    <form asp-controller="Persons" asp-action="Edit" method="post">
+
+        <input type="hidden" asp-for="PersonID" />
+
+        @*PersonName*@
+        <div style="display: flex; margin-bottom: 10px;">
+            <div style="width: 25%;">
+                <label asp-for="PersonName" style="padding-top: 5px;">Person Name</label>
+            </div>
+            <div style="flex-grow: 1;">
+                <input asp-for="PersonName" style="width: 100%;" />
+                <span asp-validation-for="PersonName" style="color: red;"></span>
+            </div>
+        </div>
+
+        @*Email*@
+        <div style="display: flex; margin-bottom: 10px;">
+            <div style="width: 25%;">
+                <label asp-for="Email" style="padding-top: 5px;">Email</label>
+            </div>
+            <div style="flex-grow: 1;">
+                <input asp-for="Email" style="width: 100%;" />
+                <span asp-validation-for="Email" style="color: red;"></span>
+            </div>
+        </div>
+
+        @*DateOfBirth*@
+        <div style="display: flex; margin-bottom: 10px;">
+            <div style="width: 25%;">
+                <label asp-for="DateOfBirth" style="padding-top: 5px;">Date of Birth</label>
+            </div>
+            <div style="flex-grow: 1;">
+                <input asp-for="DateOfBirth" style="width: 100%;" />
+                <span asp-validation-for="DateOfBirth" style="color: red;"></span>
+            </div>
+        </div>
+
+        @*Gender*@
+        <div style="display: flex; margin-bottom: 10px;">
+            <div style="width: 25%;">
+                <label style="padding-top: 5px;">Gender</label>
+            </div>
+            <div style="flex-grow: 1;">
+                @{
+                    string[] genders = (string[])Enum.GetNames(typeof(Gender));
+                }
+                @foreach (string gender in genders)
+                {
+                    <input type="radio" asp-for="Gender" value="@gender" />
+                    <label for="@gender">@gender</label>
+                }
+                <span asp-validation-for="Gender" style="color: red;"></span>
+            </div>
+        </div>
+
+        @*Country*@
+        <div style="display: flex; margin-bottom: 10px;">
+            <div style="width: 25%;">
+                <label asp-for="CountryID" style="padding-top: 5px;">Country</label>
+            </div>
+            <div style="flex-grow: 1;">
+                <select asp-for="CountryID" style="width: 100%;" asp-items="@ViewBag.Countries">
+                    <option value="">Please Select</option>
+                </select>
+                <span asp-validation-for="CountryID" style="color: red;"></span>
+            </div>
+        </div>
+
+        @*Address*@
+        <div style="display: flex; margin-bottom: 10px;">
+            <div style="width: 25%;">
+                <label asp-for="Address" style="padding-top: 5px;">Address</label>
+            </div>
+            <div style="flex-grow: 1;">
+                <textarea asp-for="Address" style="width: 100%;"></textarea>
+                <span asp-validation-for="Address" style="color: red;"></span>
+            </div>
+        </div>
+
+        @*ReceiveNewsLetters*@
+        <div style="display: flex; margin-bottom: 10px;">
+            <div style="width: 25%;">
+            </div>
+            <div style="flex-grow: 1;">
+                <input asp-for="ReceiveNewsLetters" value="true" />
+                <label asp-for="ReceiveNewsLetters" style="padding-top: 5px;">Receive News Letters</label>
+                <span asp-validation-for="ReceiveNewsLetters" style="color: red;"></span>
+            </div>
+        </div>
+
+        @*Submit*@
+        <div style="display: flex; margin-bottom: 10px;">
+            <div style="width: 25%;">
+            </div>
+            <div style="flex-grow: 1;">
+                <button style="background-color: #007bff; color: white; padding: 15px 20px; border: none; border-radius: 4px; cursor: pointer;">Update</button>
+
+                <div asp-validation-summary="All" style="color: red;"></div>
+
+                @if (ViewBag.Errors != null)
+                {
+                    <div style="color: red; margin-left: 10px;">
+                        <ul>
+                            @foreach (string error in ViewBag.Errors)
+                            {
+                                <li style="margin-left: 10px;">@error</li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </form>
+</div>
