@@ -4,14 +4,9 @@ using ServiceContracts.DTO;
 
 namespace Services
 {
-    public class CountriesService : ICountriesService
+    public class CountriesService(ContactsDbContext contactsDbContext) : ICountriesService
     {
-        private readonly List<Country> _countries;
-
-        public CountriesService()
-        {
-            _countries = new();
-        }
+        private readonly ContactsDbContext _DBcontext = contactsDbContext;
 
         public CountryResponse AddCountry(CountryAddRequest? request)
         {
@@ -21,7 +16,7 @@ namespace Services
                 throw new System.ArgumentException("CountryName cannot be null");
             }
 
-            if (_countries.Any(c => c.CountryName == request.CountryName))
+            if (_DBcontext.Countries.Any(c => c.CountryName == request.CountryName))
             {
                 throw new System.ArgumentException("CountryName already exists");
             }
@@ -37,14 +32,15 @@ namespace Services
 
             country.CountryName = request.CountryName;
 
-            _countries.Add(country);
+            _DBcontext.Countries.Add(country);
+            _DBcontext.SaveChanges();
 
             return country.ToCountryResponse();
         }
 
         public List<CountryResponse> GetAllCountries()
         {
-            return _countries.Select(country => country.ToCountryResponse()).ToList();
+            return [.. _DBcontext.Countries.Select(country => country.ToCountryResponse())];
         }
 
         public CountryResponse? GetCountryByCountryID(Guid? CountryID)
@@ -54,7 +50,7 @@ namespace Services
                 return null;
             }
 
-            Country? country = _countries.FirstOrDefault(c => c.CountryID == CountryID);
+            Country? country = _DBcontext.Countries.FirstOrDefault(c => c.CountryID == CountryID);
 
             if (country == null)
             {

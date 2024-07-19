@@ -8,16 +8,11 @@ using System.Reflection;
 
 namespace Services
 {
-    public class PersonService : IPersonService
+    public class PersonService(ContactsDbContext DBcontext, ICountriesService countriesService) : IPersonService
     {
-        private readonly List<Person> _people;
-        private readonly ICountriesService _countriesService;
+        private readonly ContactsDbContext _DBcontext = DBcontext;
+        private readonly ICountriesService _countriesService = countriesService;
 
-        public PersonService()
-        {
-            _people = new();
-            _countriesService = new CountriesService();
-        }
         //private method to convert person object to person response object
         private PersonResponse ConvertPersonToPersonResponse(Person person)
         {
@@ -25,18 +20,15 @@ namespace Services
             personResponse.Country = _countriesService.GetCountryByCountryID(person.CountryID)?.CountryName;
             return personResponse;
         }
-
         public PersonResponse AddPerson(PersonAddRequest? request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             //Model validations
             ValidationHelper.ModelValidation(request);
             Person person = request.ToPerson();
             person.PersonID = Guid.NewGuid();
-            _people.Add(person);
+            _DBcontext.Persons.Add(person);
+            _DBcontext.SaveChanges();
             return ConvertPersonToPersonResponse(person);
         }
         public PersonResponse? GetPersonByPersonID(Guid? PersonID)
@@ -45,7 +37,7 @@ namespace Services
             {
                 return null;
             }
-            Person? person = _people.FirstOrDefault(p => p.PersonID == PersonID);
+            Person? person = _DBcontext.Persons.FirstOrDefault(p => p.PersonID == PersonID);
             if (person == null)
             {
                 return null;
@@ -54,7 +46,7 @@ namespace Services
         }
         public List<PersonResponse> GetAllPersons()
         {
-            return _people.Select(person => ConvertPersonToPersonResponse(person)).ToList();
+            return _DBcontext.Persons.ToList().Select(person => ConvertPersonToPersonResponse(person)).ToList();
         }
         public List<PersonResponse> GetFilteredPersons(string SearchBy, string SearchValue)
         {
@@ -117,17 +109,10 @@ namespace Services
         }
         public PersonResponse UpdatePerson(PersonUpdateRequest? request)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            ArgumentNullException.ThrowIfNull(request);
             //Model validations
             ValidationHelper.ModelValidation(request);
-            Person? person = _people.FirstOrDefault(p => p.PersonID == request.PersonID);
-            if (person == null)
-            {
-                throw new ArgumentException("PersonID doesn't exist");
-            }
+            Person? person = _DBcontext.Persons.FirstOrDefault(p => p.PersonID == request.PersonID) ?? throw new ArgumentException("PersonID doesn't exist");
             //updating the person object
             person.PersonName = request.PersonName;
             person.DateOfBirth = request.DateOfBirth;
@@ -137,6 +122,8 @@ namespace Services
             person.CountryID = request.CountryID;
             person.Gender = request.Gender.ToString();
 
+            _DBcontext.SaveChanges();
+
             return ConvertPersonToPersonResponse(person);
         }
         public bool DeletePerson(Guid? PersonID)
@@ -145,12 +132,13 @@ namespace Services
             {
                 throw new ArgumentNullException(nameof(PersonID));
             }
-            Person? person = _people.FirstOrDefault(p => p.PersonID == PersonID);
+            Person? person = _DBcontext.Persons.FirstOrDefault(p => p.PersonID == PersonID);
             if (person == null)
             {
                 return false;
             }
-            _people.Remove(person);
+            _DBcontext.Persons.Remove(person);
+            _DBcontext.SaveChanges();
             return true;
         }
     }
