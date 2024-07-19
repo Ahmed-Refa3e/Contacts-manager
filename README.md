@@ -58,8 +58,6 @@ Special thanks to the open-source community for providing the tools and framewor
 
 ---
 
-#DotNet #WebDevelopment #OpenSource #CRUD #UnitTesting #DependencyInjection #ContactsManager #ResponsiveDesign #SoftwareEngineering #EntityFramework #Bootstrap #MSSQL #NTierArchitecture
-
 
 <div align="left">
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" height="40" alt="csharp logo"  />
