@@ -17,8 +17,10 @@ namespace Entities
         [StringLength(60)]
         public string? Address { get; set; }
         //unique identifier
-        [ForeignKey("CountryID")]
         public Guid? CountryID { get; set; }
         public bool ReceiveNewsLetters { get; set; }
+
+        [ForeignKey("CountryID")]
+        public virtual Country? Country { get; set; }
     }
 }

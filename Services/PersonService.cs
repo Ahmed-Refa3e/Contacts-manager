@@ -1,4 +1,5 @@
 ﻿using Entities;
+using Microsoft.EntityFrameworkCore;
 using ServiceContracts;
 using ServiceContracts.DTO;
 using ServiceContracts.Enums;
@@ -8,28 +9,20 @@ using System.Reflection;
 
 namespace Services
 {
-    public class PersonService(ContactsDbContext DBcontext, ICountriesService countriesService) : IPersonService
+    public class PersonService(ContactsDbContext DBcontext) : IPersonService
     {
         private readonly ContactsDbContext _DBcontext = DBcontext;
-        private readonly ICountriesService _countriesService = countriesService;
 
-        //private method to convert person object to person response object
-        private PersonResponse ConvertPersonToPersonResponse(Person person)
-        {
-            PersonResponse personResponse = person.ToPersonResponse();
-            personResponse.Country = _countriesService.GetCountryByCountryID(person.CountryID)?.CountryName;
-            return personResponse;
-        }
         public PersonResponse AddPerson(PersonAddRequest? request)
         {
             ArgumentNullException.ThrowIfNull(request);
             //Model validations
             ValidationHelper.ModelValidation(request);
             Person person = request.ToPerson();
-            person.PersonID = Guid.NewGuid();
+            //person.PersonID = Guid.NewGuid();
             _DBcontext.Persons.Add(person);
             _DBcontext.SaveChanges();
-            return ConvertPersonToPersonResponse(person);
+            return person.ToPersonResponse();
         }
         public PersonResponse? GetPersonByPersonID(Guid? PersonID)
         {
@@ -37,16 +30,16 @@ namespace Services
             {
                 return null;
             }
-            Person? person = _DBcontext.Persons.FirstOrDefault(p => p.PersonID == PersonID);
+            Person? person = _DBcontext.Persons.Include("Country").FirstOrDefault(p => p.PersonID == PersonID);
             if (person == null)
             {
                 return null;
             }
-            return ConvertPersonToPersonResponse(person);
+            return person.ToPersonResponse();
         }
         public List<PersonResponse> GetAllPersons()
         {
-            return _DBcontext.Persons.ToList().Select(person => ConvertPersonToPersonResponse(person)).ToList();
+            return _DBcontext.Persons.Include("Country").ToList().Select(person => person.ToPersonResponse()).ToList();
         }
         public List<PersonResponse> GetFilteredPersons(string SearchBy, string SearchValue)
         {
@@ -124,7 +117,7 @@ namespace Services
 
             _DBcontext.SaveChanges();
 
-            return ConvertPersonToPersonResponse(person);
+            return person.ToPersonResponse();
         }
         public bool DeletePerson(Guid? PersonID)
         {
