@@ -9,11 +9,18 @@ using System.Reflection;
 
 namespace Services
 {
-    public class PersonService(ContactsDbContext DBcontext) : IPersonService
+    public class PersonService : IPersonService
     {
-        private readonly ContactsDbContext _DBcontext = DBcontext;
+        private readonly ContactsDbContext _DBcontext;
 
-        public PersonResponse AddPerson(PersonAddRequest? request)
+
+        //constructor
+        public PersonService(ContactsDbContext personDbContext)
+        {
+            _DBcontext = personDbContext;
+        }
+
+        public async Task<PersonResponse> AddPerson(PersonAddRequest? request)
         {
             ArgumentNullException.ThrowIfNull(request);
             //Model validations
@@ -21,30 +28,31 @@ namespace Services
             Person person = request.ToPerson();
             //person.PersonID = Guid.NewGuid();
             _DBcontext.Persons.Add(person);
-            _DBcontext.SaveChanges();
+            await _DBcontext.SaveChangesAsync();
             return person.ToPersonResponse();
         }
-        public PersonResponse? GetPersonByPersonID(Guid? PersonID)
+        public async Task<PersonResponse?> GetPersonByPersonID(Guid? PersonID)
         {
             if (PersonID == null)
             {
                 return null;
             }
-            Person? person = _DBcontext.Persons.Include("Country").FirstOrDefault(p => p.PersonID == PersonID);
+            Person? person = await _DBcontext.Persons.Include("Country").FirstOrDefaultAsync(p => p.PersonID == PersonID);
             if (person == null)
             {
                 return null;
             }
             return person.ToPersonResponse();
         }
-        public List<PersonResponse> GetAllPersons()
+        public async Task<List<PersonResponse>> GetAllPersons()
         {
-            return _DBcontext.Persons.Include("Country").ToList().Select(person => person.ToPersonResponse()).ToList();
+            var persons = await _DBcontext.Persons.Include("Country").ToListAsync();
+            return persons.Select(p => p.ToPersonResponse()).ToList();
         }
-        public List<PersonResponse> GetFilteredPersons(string SearchBy, string SearchValue)
+        public async Task<List<PersonResponse>> GetFilteredPersons(string SearchBy, string SearchValue)
         {
-            List<PersonResponse> filteredPeople = new();
-            List<PersonResponse> AllPeople = GetAllPersons();
+            List<PersonResponse> filteredPeople = [];
+            List<PersonResponse> AllPeople = await GetAllPersons();
             if (string.IsNullOrEmpty(SearchBy) || string.IsNullOrEmpty(SearchValue))
             {
                 return AllPeople;
@@ -76,9 +84,9 @@ namespace Services
             }
             return filteredPeople;
         }
-        public List<PersonResponse> GetSortedPersons(List<PersonResponse> persons, string sortBy, SortOrderOptions sortOrder)
+        public  List<PersonResponse> GetSortedPersons(List<PersonResponse> persons, string sortBy, SortOrderOptions sortOrder)
         {
-            //using reflection to sort the list of persons based on the property name
+            //using reflection to sort the list of persons based on the property name specified by sortBy
             if (string.IsNullOrEmpty(sortBy))
                 return persons;
 
@@ -100,12 +108,12 @@ namespace Services
                 ? persons.OrderBy(p => propertyInfo.GetValue(p, null)).ToList()
                 : persons.OrderByDescending(p => propertyInfo.GetValue(p, null)).ToList();
         }
-        public PersonResponse UpdatePerson(PersonUpdateRequest? request)
+        public async Task<PersonResponse> UpdatePerson(PersonUpdateRequest? request)
         {
             ArgumentNullException.ThrowIfNull(request);
             //Model validations
             ValidationHelper.ModelValidation(request);
-            Person? person = _DBcontext.Persons.FirstOrDefault(p => p.PersonID == request.PersonID) ?? throw new ArgumentException("PersonID doesn't exist");
+            Person? person = await _DBcontext.Persons.FirstOrDefaultAsync(p => p.PersonID == request.PersonID) ?? throw new ArgumentException("PersonID doesn't exist");
             //updating the person object
             person.PersonName = request.PersonName;
             person.DateOfBirth = request.DateOfBirth;
@@ -115,23 +123,23 @@ namespace Services
             person.CountryID = request.CountryID;
             person.Gender = request.Gender.ToString();
 
-            _DBcontext.SaveChanges();
+            await _DBcontext.SaveChangesAsync();
 
             return person.ToPersonResponse();
         }
-        public bool DeletePerson(Guid? PersonID)
+        public async Task<bool> DeletePerson(Guid? PersonID)
         {
             if (PersonID == null)
             {
                 throw new ArgumentNullException(nameof(PersonID));
             }
-            Person? person = _DBcontext.Persons.FirstOrDefault(p => p.PersonID == PersonID);
+            Person? person = await _DBcontext.Persons.FirstOrDefaultAsync(p => p.PersonID == PersonID);
             if (person == null)
             {
                 return false;
             }
             _DBcontext.Persons.Remove(person);
-            _DBcontext.SaveChanges();
+            await _DBcontext.SaveChangesAsync();
             return true;
         }
     }
