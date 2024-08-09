@@ -320,7 +320,7 @@ namespace ContactsManagerTests
             _personService?.AddPerson(request1);
             _personService?.AddPerson(request2);
             List<PersonResponse>? people = await _personService!.GetAllPersons();
-            List<PersonResponse>? SortedPeople = _personService?.GetSortedPersons(people,nameof(Person.PersonName),SortOrderOptions.Ascending);
+            List<PersonResponse>? SortedPeople = _personService?.GetSortedPersons(people,nameof(Person.PersonName),SortOrderOptions.ASC);
 
             //Assert
             Assert.NotNull(SortedPeople);

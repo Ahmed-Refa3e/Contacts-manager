@@ -1,24 +1,27 @@
-﻿<!DOCTYPE html>
+﻿﻿
+<!DOCTYPE html>
 
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
-    <title>@ViewBag.Title - Contacts Manager</title>
+    <title>@ViewBag.Title</title>
+    <link href="~/Stylesheet.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 </head>
-<body style="margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
-    <div style="max-width: 1200px; margin: auto; padding: 20px;">
-        <div style="background-color: #007bff; padding: 20px; display: flex; align-items: center; justify-content: space-between; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <div style="flex-grow: 1; color: white; font-size: 24px; font-weight: bold;">
-                Contacts Manager
-            </div>
-            <ul style="list-style: none; display: flex; margin: 0; padding: 0;">
-                <li style="margin-right: 20px;">
-                    <a href="~/persons/index" style="text-decoration: none; color: white; font-size: 18px;">Contacts</a>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <ul>
+                <li>
+                    <a asp-controller="Persons" asp-action="Index">Contacts</a>
+                    <a asp-controller="Countries" asp-action="UploadFromExcel">Upload Countries</a>
                 </li>
             </ul>
         </div>
 
-        <div style="margin-top: 20px; background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <div class="page-content">
             @RenderBody()
         </div>
     </div>

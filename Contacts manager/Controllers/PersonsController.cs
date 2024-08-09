@@ -23,7 +23,7 @@ public class PersonsController : Controller
     //Url: persons/index
     [Route("[action]")]
     [Route("/")]
-    public async Task<IActionResult> Index(string searchBy, string searchString, string sortBy = nameof(PersonResponse.PersonName), SortOrderOptions sortOrder = SortOrderOptions.Ascending)
+    public async Task<IActionResult> Index(string searchBy, string searchString, string sortBy = nameof(PersonResponse.PersonName), SortOrderOptions sortOrder = SortOrderOptions.ASC)
     {
         //Search
         ViewBag.SearchFields = new Dictionary<string, string>()
@@ -55,7 +55,7 @@ public class PersonsController : Controller
     public async Task<IActionResult> Create()
     {
         List<CountryResponse> countries = await _countriesService.GetAllCountries();
-        ViewBag.Countries = countries.Select(temp =>
+        ViewBag.Countries = countries.OrderBy(temp => temp.CountryName).Select(temp =>
           new SelectListItem() { Text = temp.CountryName, Value = temp.CountryID.ToString()}
         );
 

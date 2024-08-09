@@ -1,20 +1,20 @@
-﻿﻿@if (ViewBag.CurrentSortBy == ViewBag.ColumnName && ViewBag.CurrentSortOrder == SortOrderOptions.Ascending.ToString())
+﻿﻿@if (ViewBag.CurrentSortBy == ViewBag.ColumnName && ViewBag.CurrentSortOrder == SortOrderOptions.ASC.ToString())
 {
-    <th style="text-align: left; padding: 8px;">
-        <a href="~/persons/index?searchBy=@ViewBag.CurrentSearchBy&searchString=@ViewBag.CurrentSearchString&sortBy=ViewBag.ColumnName&sortOrder=@nameof(SortOrderOptions.Descending)" style="text-decoration: none; color: blue;">@ViewBag.DisplayName</a>
-        <i class="fa-solid fa-sort-up" style="margin-left: 5px;"></i>
+    <th>
+        <a href="~/persons/index?searchBy=@(ViewBag.CurrentSearchBy)&searchString=@(ViewBag.CurrentSearchString)&sortBy=@(ViewBag.ColumnName)&sortOrder=@(nameof(SortOrderOptions.DESC))">@ViewBag.DisplayName</a>
+        <i class="fa-solid fa-sort-up"></i>
     </th>
 }
-else if (ViewBag.CurrentSortBy == ViewBag.ColumnName && ViewBag.CurrentSortOrder == SortOrderOptions.Descending.ToString())
+else if (ViewBag.CurrentSortBy == nameof(PersonResponse.PersonName) && ViewBag.CurrentSortOrder == SortOrderOptions.DESC.ToString())
 {
-    <th style="text-align: left; padding: 8px;">
-        <a href="~/persons/index?searchBy=@ViewBag.CurrentSearchBy&searchString=@ViewBag.CurrentSearchString&sortBy=@ViewBag.ColumnName&sortOrder=@nameof(SortOrderOptions.Ascending)" style="text-decoration: none; color: black;">@ViewBag.DisplayName</a>
-        <i class="fa-solid fa-sort-down" style="margin-left: 5px;"></i>
+    <th>
+        <a href="~/persons/index?searchBy=@(ViewBag.CurrentSearchBy)&searchString=@(ViewBag.CurrentSearchString)&sortBy=@(ViewBag.ColumnName)&sortOrder=@(nameof(SortOrderOptions.ASC))">@ViewBag.DisplayName</a>
+        <i class="fa-solid fa-sort-down"></i>
     </th>
 }
 else
 {
-    <th style="text-align: left; padding: 8px;">
-        <a href="~/persons/index?searchBy=@ViewBag.CurrentSearchBy&searchString=@ViewBag.CurrentSearchString&sortBy=@ViewBag.ColumnName&sortOrder=@nameof(SortOrderOptions.Ascending)" style="text-decoration: none; color: black;">@ViewBag.DisplayName</a>
+    <th>
+        <a href="~/persons/index?searchBy=@(ViewBag.CurrentSearchBy)&searchString=@(ViewBag.CurrentSearchString)&sortBy=@(ViewBag.ColumnName)&sortOrder=@(nameof(SortOrderOptions.ASC))">@ViewBag.DisplayName</a>
     </th>
 }

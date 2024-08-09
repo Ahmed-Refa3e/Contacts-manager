@@ -104,7 +104,7 @@ namespace Services
             //Checks if the sort order is ascending Orders the list in ascending order based on the value of the property retrieved
             //if the sort order is descending Orders the list in descending order based on the value of the property retrieved
 
-            return sortOrder == SortOrderOptions.Ascending
+            return sortOrder == SortOrderOptions.ASC
                 ? persons.OrderBy(p => propertyInfo.GetValue(p, null)).ToList()
                 : persons.OrderByDescending(p => propertyInfo.GetValue(p, null)).ToList();
         }
