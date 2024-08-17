@@ -2,11 +2,11 @@
 
 namespace Entities;
 
-public class ContactsDbContext(DbContextOptions<ContactsDbContext> options) : DbContext(options)
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
 
-    public DbSet<Country> Countries { get; set; }
-    public DbSet<Person> Persons { get; set; }
+    public virtual DbSet<Country> Countries { get; set; }
+    public virtual DbSet<Person> Persons { get; set; }
 
     //protected override void OnModelCreating(ModelBuilder modelBuilder)
     //{

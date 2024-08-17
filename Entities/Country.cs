@@ -5,7 +5,7 @@ namespace Entities
     public class Country
     {
         [Key]
-        public Guid CountryID { get; set; }
+        public Guid CountryID { get; set; } = new Guid();
         public string? CountryName { get; set; }
     }
 }

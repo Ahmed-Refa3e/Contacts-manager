@@ -7,9 +7,9 @@ using ServiceContracts.DTO;
 
 namespace Services
 {
-    public class CountriesService(ContactsDbContext contactsDbContext) : ICountriesService
+    public class CountriesService(ApplicationDbContext contactsDbContext) : ICountriesService
     {
-        private readonly ContactsDbContext _DBcontext = contactsDbContext;
+        private readonly ApplicationDbContext _DBcontext = contactsDbContext;
 
         public async Task<CountryResponse> AddCountry(CountryAddRequest? request)
         {
@@ -31,7 +31,7 @@ namespace Services
 
             Country country = request.ToCountry();
 
-            //country.CountryID = Guid.NewGuid();
+            country.CountryID = Guid.NewGuid();
 
             country.CountryName = request.CountryName;
 

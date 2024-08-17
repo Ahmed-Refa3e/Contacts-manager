@@ -11,11 +11,11 @@ namespace Services
 {
     public class PersonService : IPersonService
     {
-        private readonly ContactsDbContext _DBcontext;
+        private readonly ApplicationDbContext _DBcontext;
 
 
         //constructor
-        public PersonService(ContactsDbContext personDbContext)
+        public PersonService(ApplicationDbContext personDbContext)
         {
             _DBcontext = personDbContext;
         }
@@ -26,7 +26,7 @@ namespace Services
             //Model validations
             ValidationHelper.ModelValidation(request);
             Person person = request.ToPerson();
-            //person.PersonID = Guid.NewGuid();
+            person.PersonID = Guid.NewGuid();
             _DBcontext.Persons.Add(person);
             await _DBcontext.SaveChangesAsync();
             return person.ToPersonResponse();
