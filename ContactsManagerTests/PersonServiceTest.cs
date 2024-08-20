@@ -92,8 +92,7 @@ public class PersonServiceTest
         response.PersonID.Should().NotBe(Guid.Empty);
         list.Should().NotBeNull();
         response.PersonID.Should().Be(list.ToList().FirstOrDefault()!.PersonID);
-        response.CountryID.Should().Be(country_response?.CountryID);    
-        //Assert.Equal(country_response?.CountryName, response?.Country);
+        response.CountryID.Should().Be(country_response?.CountryID);
     }
     #endregion
 
@@ -142,11 +141,15 @@ public class PersonServiceTest
         //Act
         PersonResponse? addedPerson = await _personService!.AddPerson(request);
         PersonResponse? response = await _personService!.GetPersonByPersonID(addedPerson?.PersonID);
+
         //Assert
-        Assert.NotNull(response);
-        Assert.Equal(addedPerson?.PersonID, response.PersonID);
-        Assert.Equal(addedPerson?.PersonName, response.PersonName);
-        Assert.Equal(country_response?.CountryID, response.CountryID);
+        response.Should().NotBeNull();
+        //Assert.Equal(addedPerson?.PersonID, response.PersonID);
+        addedPerson!.PersonID.Should().Be(response!.PersonID);
+        //Assert.Equal(addedPerson?.PersonName, response.PersonName);
+        addedPerson!.PersonName.Should().Be(response!.PersonName);
+        //Assert.Equal(country_response?.CountryID, response.CountryID);
+        country_response!.CountryID.Should().Be((Guid)response!.CountryID!);
     }
     #endregion
 
@@ -186,7 +189,7 @@ public class PersonServiceTest
         List<PersonResponse>? people = await _personService!.GetAllPersons();
         //Assert
         Assert.NotNull(people);
-        Assert.Equal(2, people.Count);
+        people.Should().HaveCount(2);
         Assert.Contains(people, p => p.PersonID == response1?.PersonID);
         Assert.Contains(people, p => p.PersonID == response2?.PersonID);
         Assert.Contains(people, p => p.Country == response2?.Country);
@@ -220,8 +223,7 @@ public class PersonServiceTest
         List<PersonResponse>? people1 = await _personService!.GetAllPersons();
         List<PersonResponse>? people2 = await _personService.GetFilteredPersons(null!, null!);
         //Assert
-        Assert.NotNull(people2);
-        Assert.True(people2.Count == 2);
+        people2.Should().HaveCount(2);
         Assert.Equal(people1?[0].PersonName, people2[0].PersonName);
         Assert.Equal(people1?[1].PersonName, people2[1].PersonName);
     }
@@ -252,9 +254,8 @@ public class PersonServiceTest
         List<PersonResponse>? people2 = await _personService!.GetAllPersons();
 
         //Assert
-        Assert.NotNull(people1);
-        Assert.True(people1?.Count == 1);
-        Assert.True(people2?.Count == 2);
+        people1.Should().HaveCount(1);
+        people2.Should().HaveCount(2);
         Assert.Contains(people1, p => p.PersonName == "Ahmed");
     }
     #endregion
@@ -286,11 +287,7 @@ public class PersonServiceTest
         List<PersonResponse>? SortedPeople = _personService?.GetSortedPersons(people,nameof(Person.PersonName),SortOrderOptions.ASC);
 
         //Assert
-        Assert.NotNull(SortedPeople);
-        Assert.NotNull(people);
-        Assert.Equal(people[0].PersonName, SortedPeople[0].PersonName);
-
-
+        people.OrderBy(p => p.PersonName).Should().BeEquivalentTo(SortedPeople);
     }
     #endregion
 
@@ -352,7 +349,7 @@ public class PersonServiceTest
         PersonResponse? person = await _personService!.GetPersonByPersonID(addedPerson1.PersonID);
 
         //Assert
-        Assert.NotNull(person);
+        person.Should().NotBeNull();
         Assert.Equal(UpdateRequest.PersonName, person.PersonName);
         Assert.Equal(UpdateRequest.Email, person.Email);
     }
@@ -408,9 +405,9 @@ public class PersonServiceTest
         List<PersonResponse>? people = await _personService!.GetAllPersons();
 
         //Assert
-        Assert.True(isDeleted);
-        Assert.Null(person);
-        Assert.Equal(0, people?.Count);
+        isDeleted.Should().BeTrue();
+        person.Should().BeNull();
+        people.Should().HaveCount(0);
     }
     #endregion
 }
