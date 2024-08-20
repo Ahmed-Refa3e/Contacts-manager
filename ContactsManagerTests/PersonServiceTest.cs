@@ -1,7 +1,8 @@
-﻿using Entities;
+﻿using AutoFixture;
+using Entities;
 using EntityFrameworkCoreMock;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using ServiceContracts;
 using ServiceContracts.DTO;
 using ServiceContracts.Enums;
 using Services;
@@ -9,12 +10,16 @@ namespace ContactsManagerTests;
 
 public class PersonServiceTest
 {
-    private readonly IPersonService? _personService;
-    private readonly ICountriesService? _countriesService;
+    private readonly PersonService? _personService;
+    private readonly CountriesService? _countriesService;
+    private readonly Fixture? _fixture;
+
 
     //constructor
     public PersonServiceTest()
     {
+        _fixture = new Fixture();
+
         var countriesInitialData = new List<Country>() { };
         var PeopleInitialData = new List<Person>() { };
 
@@ -73,26 +78,21 @@ public class PersonServiceTest
             CountryName = "Egypt"
         };
         CountryResponse? country_response = await _countriesService!.AddCountry(countryRequest);
-        PersonAddRequest request = new()
-        {
-            PersonName = "Ahmed",
-            DateOfBirth = new DateTime(1990, 1, 1),
-            Email = "Ahmed@example.com",
-            Gender = Gender.male,
-            Address = "Cairo",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
+        PersonAddRequest request = _fixture!.Build<PersonAddRequest>()
+        .With(temp => temp.Email, "someone@example.com")
+        .With(temp => temp.CountryID, country_response.CountryID)
+        .Create();
+
         //Act
         PersonResponse? response = await _personService!.AddPerson(request);
         List<PersonResponse>? list = await _personService!.GetAllPersons();
 
         //Assert
-        Assert.NotNull(response);
-        Assert.NotEqual(Guid.Empty, response?.PersonID);
-        Assert.NotNull(list);
-        Assert.Equal(response?.PersonID, list.FirstOrDefault()?.PersonID);
-        Assert.Equal(response?.CountryID, country_response?.CountryID);
+        response.Should().NotBeNull();
+        response.PersonID.Should().NotBe(Guid.Empty);
+        list.Should().NotBeNull();
+        response.PersonID.Should().Be(list.ToList().FirstOrDefault()!.PersonID);
+        response.CountryID.Should().Be(country_response?.CountryID);    
         //Assert.Equal(country_response?.CountryName, response?.Country);
     }
     #endregion
@@ -134,16 +134,11 @@ public class PersonServiceTest
             CountryName = "Egypt"
         };
         CountryResponse? country_response = await _countriesService!.AddCountry(countryRequest);
-        PersonAddRequest request = new()
-        {
-            PersonName = "Ahmed",
-            DateOfBirth = new DateTime(1990, 1, 1),
-            Email = "Ahmed@example.com",
-            Gender = Gender.male,
-            Address = "Cairo",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
+        PersonAddRequest request = _fixture!.Build<PersonAddRequest>()
+        .With(temp => temp.Email, "someone@example.com")
+        .With(temp => temp.CountryID, country_response.CountryID)
+        .Create();
+
         //Act
         PersonResponse? addedPerson = await _personService!.AddPerson(request);
         PersonResponse? response = await _personService!.GetPersonByPersonID(addedPerson?.PersonID);
@@ -177,33 +172,21 @@ public class PersonServiceTest
             CountryName = "Egypt"
         };
         CountryResponse? country_response = await _countriesService!.AddCountry(countryRequest);
-        PersonAddRequest request1 = new()
-        {
-            PersonName = "Ahmed",
-            DateOfBirth = new DateTime(1990, 1, 1),
-            Email = "Ahmed@example.com",
-            Gender = Gender.male,
-            Address = "Cairo",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
-        PersonAddRequest request2 = new()
-        {
-            PersonName = "Mohamed",
-            DateOfBirth = new DateTime(1995, 1, 1),
-            Email = "Mohamed@example.com",
-            Gender = Gender.male,
-            Address = "Tanta",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
+        PersonAddRequest request1 = _fixture!.Build<PersonAddRequest>()
+            .With(temp => temp.Email, "someone@example.com")
+            .With(temp => temp.CountryID, country_response.CountryID)
+            .Create();
+        PersonAddRequest request2 = _fixture!.Build<PersonAddRequest>()
+            .With(temp => temp.Email, "someone@example.com")
+            .With(temp => temp.CountryID, country_response.CountryID)
+            .Create();
         //Act
         PersonResponse? response1 = await _personService!.AddPerson(request1);
         PersonResponse? response2 = await _personService!.AddPerson(request2);
         List<PersonResponse>? people = await _personService!.GetAllPersons();
         //Assert
         Assert.NotNull(people);
-        Assert.True(people.Count == 2);
+        Assert.Equal(2, people.Count);
         Assert.Contains(people, p => p.PersonID == response1?.PersonID);
         Assert.Contains(people, p => p.PersonID == response2?.PersonID);
         Assert.Contains(people, p => p.Country == response2?.Country);
@@ -222,26 +205,15 @@ public class PersonServiceTest
             CountryName = "Egypt"
         };
         CountryResponse? country_response = await _countriesService!.AddCountry(countryRequest);
-        PersonAddRequest request1 = new()
-        {
-            PersonName = "Ahmed",
-            DateOfBirth = new DateTime(1990, 1, 1),
-            Email = "Ahmed@example.com",
-            Gender = Gender.male,
-            Address = "Cairo",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
-        PersonAddRequest request2 = new()
-        {
-            PersonName = "Mohamed",
-            DateOfBirth = new DateTime(1995, 1, 1),
-            Email = "Mohamed@example.com",
-            Gender = Gender.male,
-            Address = "Tanta",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
+        PersonAddRequest request1 = _fixture!.Build<PersonAddRequest>()
+            .With(temp => temp.Email, "someone@example.com")
+            .With(temp => temp.CountryID, country_response.CountryID)
+            .Create();
+        PersonAddRequest request2 = _fixture!.Build<PersonAddRequest>()
+            .With(temp => temp.Email, "someone@example.com")
+            .With(temp => temp.CountryID, country_response.CountryID)
+            .Create();
+
         //Act
         _personService?.AddPerson(request1);
         _personService?.AddPerson(request2);
@@ -263,26 +235,15 @@ public class PersonServiceTest
             CountryName = "Egypt"
         };
         CountryResponse? country_response = await _countriesService!.AddCountry(countryRequest);
-        PersonAddRequest request1 = new()
-        {
-            PersonName = "Ahmed",
-            DateOfBirth = new DateTime(1990, 1, 1),
-            Email = "Ahmed@example.com",
-            Gender = Gender.male,
-            Address = "Cairo",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
-        PersonAddRequest request2 = new()
-        {
-            PersonName = "Mohamed",
-            DateOfBirth = new DateTime(1995, 1, 1),
-            Email = "Mohamed@example.com",
-            Gender = Gender.male,
-            Address = "Tanta",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
+        PersonAddRequest request1 = _fixture!.Build<PersonAddRequest>()
+            .With(temp => temp.Email, "someone@example.com")
+            .With(temp => temp.CountryID, country_response.CountryID)
+            .With(temp => temp.PersonName, "Ahmed")
+            .Create();
+        PersonAddRequest request2 = _fixture!.Build<PersonAddRequest>()
+            .With(temp => temp.Email, "someone@example.com")
+            .With(temp => temp.CountryID, country_response.CountryID)
+            .Create();
 
         //Act
         _personService?.AddPerson(request1);
@@ -309,26 +270,14 @@ public class PersonServiceTest
             CountryName = "Egypt"
         };
         CountryResponse? country_response = await _countriesService!.AddCountry(countryRequest);
-        PersonAddRequest request1 = new()
-        {
-            PersonName = "Ahmed",
-            DateOfBirth = new DateTime(1990, 1, 1),
-            Email = "Ahmed@example.com",
-            Gender = Gender.male,
-            Address = "Cairo",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
-        PersonAddRequest request2 = new()
-        {
-            PersonName = "Mohamed",
-            DateOfBirth = new DateTime(1995, 1, 1),
-            Email = "Mohamed@example.com",
-            Gender = Gender.male,
-            Address = "Tanta",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
+        PersonAddRequest request1 = _fixture!.Build<PersonAddRequest>()
+            .With(temp => temp.Email, "someone@example.com")
+            .With(temp => temp.CountryID, country_response.CountryID)
+            .Create();
+        PersonAddRequest request2 = _fixture!.Build<PersonAddRequest>()
+            .With(temp => temp.Email, "someone@example.com")
+            .With(temp => temp.CountryID, country_response.CountryID)
+            .Create();
 
         //Act
         _personService?.AddPerson(request1);
@@ -387,30 +336,18 @@ public class PersonServiceTest
             CountryName = "Egypt"
         };
         CountryResponse? country_response = await _countriesService!.AddCountry(countryRequest);
-        PersonAddRequest request1 = new()
-        {
-            PersonName = "Ahmed",
-            DateOfBirth = new DateTime(1990, 1, 1),
-            Email = "Ahmed@example.com",
-            Gender = Gender.male,
-            Address = "Cairo",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
+        PersonAddRequest request1 = _fixture!.Build<PersonAddRequest>()
+            .With(temp => temp.Email, "someone@example.com")
+            .With(temp => temp.CountryID, country_response.CountryID)
+            .Create();
 
         //Act
         PersonResponse? addedPerson1 = await _personService!.AddPerson(request1);
-        PersonUpdateRequest UpdateRequest = new()
-        {
-            PersonID = addedPerson1.PersonID,
-            PersonName = "Ali",
-            DateOfBirth = new DateTime(1990, 1, 1),
-            Email = "Ali@example.com",
-            Gender = Gender.male,
-            Address = "Cairo",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
+        PersonUpdateRequest UpdateRequest = _fixture!.Build<PersonUpdateRequest>()
+            .With(temp => temp.Email, "someone@example.com")
+            .With(temp => temp.CountryID, country_response.CountryID)
+            .With(temp => temp.PersonID, addedPerson1.PersonID)
+            .Create();
         _personService?.UpdatePerson(UpdateRequest);
         PersonResponse? person = await _personService!.GetPersonByPersonID(addedPerson1.PersonID);
 
@@ -459,16 +396,10 @@ public class PersonServiceTest
             CountryName = "Egypt"
         };
         CountryResponse? country_response = await _countriesService!.AddCountry(countryRequest);
-        PersonAddRequest request1 = new()
-        {
-            PersonName = "Ahmed",
-            DateOfBirth = new DateTime(1990, 1, 1),
-            Email = "Ahmed@example.com",
-            Gender = Gender.male,
-            Address = "Cairo",
-            CountryID = country_response?.CountryID,
-            ReceiveNewsLetters = true
-        };
+        PersonAddRequest request1 = _fixture!.Build<PersonAddRequest>()
+            .With(temp => temp.Email, "someone@example.com")
+            .With(temp => temp.CountryID, country_response.CountryID)
+            .Create();
 
         //Act
         PersonResponse? addedPerson = await _personService!.AddPerson(request1);
@@ -479,7 +410,7 @@ public class PersonServiceTest
         //Assert
         Assert.True(isDeleted);
         Assert.Null(person);
-        Assert.True(people?.Count == 0);
+        Assert.Equal(0, people?.Count);
     }
     #endregion
 }
