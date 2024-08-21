@@ -350,7 +350,7 @@ public class PersonServiceTest
 
         //Assert
         person.Should().NotBeNull();
-        Assert.Equal(UpdateRequest.PersonName, person.PersonName);
+        Assert.Equal(UpdateRequest.PersonName, person!.PersonName);
         Assert.Equal(UpdateRequest.Email, person.Email);
     }
     #endregion
