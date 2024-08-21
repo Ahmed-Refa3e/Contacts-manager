@@ -1,5 +1,6 @@
 ﻿using Entities;
 using Microsoft.EntityFrameworkCore;
+using RepositoryContracts;
 using ServiceContracts;
 using ServiceContracts.DTO;
 using ServiceContracts.Enums;
@@ -11,13 +12,13 @@ namespace Services
 {
     public class PersonService : IPersonService
     {
-        private readonly ApplicationDbContext _DBcontext;
+        private readonly IPersonsRepository _PersonsRepository;
 
 
         //constructor
-        public PersonService(ApplicationDbContext personDbContext)
+        public PersonService(IPersonsRepository PersonsRepository)
         {
-            _DBcontext = personDbContext;
+            _PersonsRepository = PersonsRepository;
         }
 
         public async Task<PersonResponse> AddPerson(PersonAddRequest? request)
@@ -27,8 +28,7 @@ namespace Services
             ValidationHelper.ModelValidation(request);
             Person person = request.ToPerson();
             person.PersonID = Guid.NewGuid();
-            _DBcontext.Persons.Add(person);
-            await _DBcontext.SaveChangesAsync();
+            await _PersonsRepository.AddPerson(person);
             return person.ToPersonResponse();
         }
         public async Task<PersonResponse?> GetPersonByPersonID(Guid? PersonID)
@@ -37,7 +37,7 @@ namespace Services
             {
                 return null;
             }
-            Person? person = await _DBcontext.Persons.Include("Country").FirstOrDefaultAsync(p => p.PersonID == PersonID);
+            Person? person = await _PersonsRepository.GetPersonByPersonID(PersonID.Value);
             if (person == null)
             {
                 return null;
@@ -46,7 +46,7 @@ namespace Services
         }
         public async Task<List<PersonResponse>> GetAllPersons()
         {
-            var persons = await _DBcontext.Persons.Include("Country").ToListAsync();
+            var persons = await _PersonsRepository.GetAllPersons();
             return persons.Select(p => p.ToPersonResponse()).ToList();
         }
         public async Task<List<PersonResponse>> GetFilteredPersons(string SearchBy, string SearchValue)
@@ -113,19 +113,12 @@ namespace Services
             ArgumentNullException.ThrowIfNull(request);
             //Model validations
             ValidationHelper.ModelValidation(request);
-            Person? person = await _DBcontext.Persons.FirstOrDefaultAsync(p => p.PersonID == request.PersonID) ?? throw new ArgumentException("PersonID doesn't exist");
-            //updating the person object
-            person.PersonName = request.PersonName;
-            person.DateOfBirth = request.DateOfBirth;
-            person.Email = request.Email;
-            person.ReceiveNewsLetters = request.ReceiveNewsLetters;
-            person.Address = request.Address;
-            person.CountryID = request.CountryID;
-            person.Gender = request.Gender.ToString();
+            Person NewPerson = request.ToPerson();
 
-            await _DBcontext.SaveChangesAsync();
+            //Update the person object with the new values
+            await _PersonsRepository.UpdatePerson(NewPerson);
 
-            return person.ToPersonResponse();
+            return NewPerson.ToPersonResponse();
         }
         public async Task<bool> DeletePerson(Guid? PersonID)
         {
@@ -133,14 +126,7 @@ namespace Services
             {
                 throw new ArgumentNullException(nameof(PersonID));
             }
-            Person? person = await _DBcontext.Persons.FirstOrDefaultAsync(p => p.PersonID == PersonID);
-            if (person == null)
-            {
-                return false;
-            }
-            _DBcontext.Persons.Remove(person);
-            await _DBcontext.SaveChangesAsync();
-            return true;
+            return await _PersonsRepository.DeletePersonByPersonID(PersonID.Value);
         }
     }
 }
