@@ -1,5 +1,5 @@
 ﻿using Entities;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using RepositoryContracts;
 using ServiceContracts;
 using ServiceContracts.DTO;
@@ -13,12 +13,14 @@ namespace Services
     public class PersonService : IPersonService
     {
         private readonly IPersonsRepository _PersonsRepository;
+        private readonly ILogger<PersonService> _logger;
 
 
         //constructor
-        public PersonService(IPersonsRepository PersonsRepository)
+        public PersonService(IPersonsRepository PersonsRepository, ILogger<PersonService> logger)
         {
             _PersonsRepository = PersonsRepository;
+            _logger = logger;
         }
 
         public async Task<PersonResponse> AddPerson(PersonAddRequest? request)
@@ -46,11 +48,15 @@ namespace Services
         }
         public async Task<List<PersonResponse>> GetAllPersons()
         {
+            _logger.LogInformation("GetAllPersons method of PersonService");
+
             var persons = await _PersonsRepository.GetAllPersons();
             return persons.Select(p => p.ToPersonResponse()).ToList();
         }
         public async Task<List<PersonResponse>> GetFilteredPersons(string SearchBy, string SearchValue)
         {
+            _logger.LogInformation("GetFilteredPersons method of PersonService");
+
             List<PersonResponse> filteredPeople = [];
             List<PersonResponse> AllPeople = await GetAllPersons();
             if (string.IsNullOrEmpty(SearchBy) || string.IsNullOrEmpty(SearchValue))

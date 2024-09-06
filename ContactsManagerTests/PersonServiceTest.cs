@@ -3,6 +3,8 @@ using Entities;
 using EntityFrameworkCoreMock;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Moq;
+using RepositoryContracts;
 using ServiceContracts.DTO;
 using ServiceContracts.Enums;
 using Services;
@@ -13,11 +15,16 @@ public class PersonServiceTest
     private readonly PersonService? _personService;
     private readonly CountriesService? _countriesService;
     private readonly Fixture? _fixture;
+    private readonly IPersonsRepository _personsRepository;
+    private readonly Mock<IPersonsRepository> _personsRepositoryMock;
 
 
     //constructor
     public PersonServiceTest()
     {
+        _personsRepositoryMock = new Mock<IPersonsRepository>();
+        _personsRepository = _personsRepositoryMock.Object;
+
         _fixture = new Fixture();
 
         var countriesInitialData = new List<Country>() { };
@@ -33,7 +40,7 @@ public class PersonServiceTest
 
         _countriesService = new CountriesService(null);
 
-        _personService = new PersonService(null);
+        _personService = new PersonService(_personsRepository);
     }
 
 
@@ -70,29 +77,32 @@ public class PersonServiceTest
     }
     //when we supply proper request, it should add the person to the list of persons
     [Fact]
-    public async Task AddPerson_ProperRequest()
+    public async Task AddPerson_ProperRequest_ToBeSuccessful()
     {
         //Arrange
-        CountryAddRequest countryRequest = new()
-        {
-            CountryName = "Egypt"
-        };
-        CountryResponse? country_response = await _countriesService!.AddCountry(countryRequest);
+        //CountryAddRequest countryRequest = new()
+        //{
+        //    CountryName = "Egypt"
+        //};
+        //CountryResponse? country_response = await _countriesService!.AddCountry(countryRequest);
         PersonAddRequest request = _fixture!.Build<PersonAddRequest>()
         .With(temp => temp.Email, "someone@example.com")
-        .With(temp => temp.CountryID, country_response.CountryID)
+        //.With(temp => temp.CountryID, country_response.CountryID)
         .Create();
+
+        var person = request.ToPerson();
+        var PersonResponse_Expected = person .ToPersonResponse();
+
+        _personsRepositoryMock.Setup(temp => temp.AddPerson(It.IsAny<Person>())).ReturnsAsync(person);
 
         //Act
         PersonResponse? response = await _personService!.AddPerson(request);
-        List<PersonResponse>? list = await _personService!.GetAllPersons();
+        PersonResponse_Expected.PersonID = response.PersonID;
 
         //Assert
         response.Should().NotBeNull();
         response.PersonID.Should().NotBe(Guid.Empty);
-        list.Should().NotBeNull();
-        response.PersonID.Should().Be(list.ToList().FirstOrDefault()!.PersonID);
-        response.CountryID.Should().Be(country_response?.CountryID);
+        PersonResponse_Expected.Should().Be(response);
     }
     #endregion
 

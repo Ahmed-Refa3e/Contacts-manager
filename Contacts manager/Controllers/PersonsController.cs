@@ -12,12 +12,14 @@ public class PersonsController : Controller
     //private fields
     private readonly IPersonService _personsService;
     private readonly ICountriesService _countriesService;
+    private readonly ILogger<PersonsController> _logger;
 
     //constructor
-    public PersonsController(IPersonService personsService, ICountriesService countriesService)
+    public PersonsController(IPersonService personsService, ICountriesService countriesService, ILogger<PersonsController> logger)
     {
         _personsService = personsService;
         _countriesService = countriesService;
+        _logger = logger;
     }
 
     //Url: persons/index
@@ -25,16 +27,21 @@ public class PersonsController : Controller
     [Route("/")]
     public async Task<IActionResult> Index(string searchBy, string searchString, string sortBy = nameof(PersonResponse.PersonName), SortOrderOptions sortOrder = SortOrderOptions.ASC)
     {
+        _logger.LogInformation("Index action method of PersonsController");
+
+        _logger.LogDebug($"searchBy: {searchBy}, searchString: {searchString}, sortBy: {sortBy}, sortOrder: {sortOrder}");
+
+
         //Search
         ViewBag.SearchFields = new Dictionary<string, string>()
-  {
-    { nameof(PersonResponse.PersonName), "Person Name" },
-    { nameof(PersonResponse.Email), "Email" },
-    { nameof(PersonResponse.DateOfBirth), "Date of Birth" },
-    { nameof(PersonResponse.Gender), "Gender" },
-    { nameof(PersonResponse.CountryID), "Country" },
-    { nameof(PersonResponse.Address), "Address" }
-  };
+    {
+        { nameof(PersonResponse.PersonName), "Person Name" },
+        { nameof(PersonResponse.Email), "Email" },
+        { nameof(PersonResponse.DateOfBirth), "Date of Birth" },
+        { nameof(PersonResponse.Gender), "Gender" },
+        { nameof(PersonResponse.CountryID), "Country" },
+        { nameof(PersonResponse.Address), "Address" }
+    };
         List<PersonResponse> persons = await _personsService.GetFilteredPersons(searchBy, searchString);
         ViewBag.CurrentSearchBy = searchBy;
         ViewBag.CurrentSearchString = searchString;
@@ -56,7 +63,7 @@ public class PersonsController : Controller
     {
         List<CountryResponse> countries = await _countriesService.GetAllCountries();
         ViewBag.Countries = countries.OrderBy(temp => temp.CountryName).Select(temp =>
-          new SelectListItem() { Text = temp.CountryName, Value = temp.CountryID.ToString()}
+          new SelectListItem() { Text = temp.CountryName, Value = temp.CountryID.ToString() }
         );
 
         //new SelectListItem() { Text="Harsha", Value="1" }
