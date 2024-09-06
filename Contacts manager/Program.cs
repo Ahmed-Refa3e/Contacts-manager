@@ -40,6 +40,8 @@ builder.Services.AddHttpLogging(options =>
 
 var app = builder.Build();
 
+app.UseSerilogRequestLogging();
+
 app.UseHttpLogging();
 
 //app.Logger.LogDebug("debug-message");

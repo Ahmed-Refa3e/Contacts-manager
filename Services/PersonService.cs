@@ -1,6 +1,7 @@
 ﻿using Entities;
 using Microsoft.Extensions.Logging;
 using RepositoryContracts;
+using SerilogTimings;
 using ServiceContracts;
 using ServiceContracts.DTO;
 using ServiceContracts.Enums;
@@ -57,6 +58,8 @@ namespace Services
         {
             _logger.LogInformation("GetFilteredPersons method of PersonService");
 
+            using (Operation.Time("Time for Filtered Persons from Database"))
+            {
             List<PersonResponse> filteredPeople = [];
             List<PersonResponse> AllPeople = await GetAllPersons();
             if (string.IsNullOrEmpty(SearchBy) || string.IsNullOrEmpty(SearchValue))
@@ -70,25 +73,27 @@ namespace Services
             //BindingFlags.Public: Ensures that only public properties are considered.
             //BindingFlags.Instance: Ensures that only instance properties are considered(not static properties).
 
-            PropertyInfo? propertyInfo = typeof(PersonResponse).GetProperty(SearchBy, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-            if (propertyInfo == null)
-            {
-                return AllPeople;
-            }
-            foreach (PersonResponse person in AllPeople)
-            {
-                //Retrieves the value of the specified property(SearchBy) from the current person object and converts it to a string.
-                string? value = propertyInfo.GetValue(person, null)?.ToString();
 
-                //value.ToLower(CultureInfo.InvariantCulture).Contains(SearchValue.ToLower(CultureInfo.InvariantCulture)):
-                //Converts both value and SearchValue to lowercase(using invariant culture for consistency) and checks if value contains SearchValue.
-                if (value != null && value.ToLower(CultureInfo.InvariantCulture).Contains(SearchValue.ToLower(CultureInfo.InvariantCulture)))
+                PropertyInfo? propertyInfo = typeof(PersonResponse).GetProperty(SearchBy, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                if (propertyInfo == null)
                 {
-                    //If the condition is true, the person object is added to the filteredPeople list.
-                    filteredPeople.Add(person);
+                    return AllPeople;
                 }
+                foreach (PersonResponse person in AllPeople)
+                {
+                    //Retrieves the value of the specified property(SearchBy) from the current person object and converts it to a string.
+                    string? value = propertyInfo.GetValue(person, null)?.ToString();
+
+                    //value.ToLower(CultureInfo.InvariantCulture).Contains(SearchValue.ToLower(CultureInfo.InvariantCulture)):
+                    //Converts both value and SearchValue to lowercase(using invariant culture for consistency) and checks if value contains SearchValue.
+                    if (value != null && value.ToLower(CultureInfo.InvariantCulture).Contains(SearchValue.ToLower(CultureInfo.InvariantCulture)))
+                    {
+                        //If the condition is true, the person object is added to the filteredPeople list.
+                        filteredPeople.Add(person);
+                    }
+                }
+                return filteredPeople;
             }
-            return filteredPeople;
         }
         public  List<PersonResponse> GetSortedPersons(List<PersonResponse> persons, string sortBy, SortOrderOptions sortOrder)
         {
