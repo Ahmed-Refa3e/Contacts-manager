@@ -1,4 +1,7 @@
 using Entities;
+using Entities.IdentityEntities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Repositories;
 using RepositoryContracts;
@@ -9,7 +12,8 @@ using Services;
 var builder = WebApplication.CreateBuilder(args);
 
 //Serilog
-builder.Host.UseSerilog((HostBuilderContext context, IServiceProvider services, LoggerConfiguration loggerConfiguration) => {
+builder.Host.UseSerilog((HostBuilderContext context, IServiceProvider services, LoggerConfiguration loggerConfiguration) =>
+{
 
     loggerConfiguration
     .ReadFrom.Configuration(context.Configuration) //read configuration settings from built-in IConfiguration
@@ -30,6 +34,12 @@ builder.Services.AddDbContextPool<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnection"));
 });
+//add identity
+builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders()
+    .AddUserStore<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>>()
+    .AddRoleStore<RoleStore<ApplicationRole, ApplicationDbContext, Guid>>();
 
 builder.Services.AddHttpLogging(options =>
 {
@@ -43,12 +53,6 @@ var app = builder.Build();
 app.UseSerilogRequestLogging();
 
 app.UseHttpLogging();
-
-//app.Logger.LogDebug("debug-message");
-//app.Logger.LogInformation("information-message");
-//app.Logger.LogWarning("warning-message");
-//app.Logger.LogError("error-message");
-//app.Logger.LogCritical("critical-message");
 
 app.UseStaticFiles();
 app.UseRouting();

@@ -38,9 +38,9 @@ public class PersonServiceTest
         dbContextMock.CreateDbSetMock(temp => temp.Persons, PeopleInitialData);
         dbContextMock.CreateDbSetMock(temp => temp.Countries, countriesInitialData);
 
-        _countriesService = new CountriesService(null);
+        _countriesService = new CountriesService(null!);
 
-        _personService = new PersonService(_personsRepository);
+        //_personService = new PersonService(_personsRepository);
     }
 
 
