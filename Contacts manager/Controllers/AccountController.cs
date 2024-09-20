@@ -1,13 +1,23 @@
-﻿using Entities.IdentityEntities;
+﻿using Contacts_manager.Controllers;
+using Entities.IdentityEntities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ServiceContracts.DTO;
 
-namespace Contacts_manager.Controllers
+namespace ContactsManager.UI.Controllers
 {
     [Route("[controller]/[action]")]
-    public class AccountController(UserManager<ApplicationUser> userManager) : Controller
+    public class AccountController : Controller
     {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+
+        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+        }
+
 
         [HttpGet]
         public IActionResult Register()
@@ -26,17 +36,14 @@ namespace Contacts_manager.Controllers
                 return View(registerDTO);
             }
 
-            ApplicationUser user = new()
-            {
-                Email = registerDTO.Email,
-                PhoneNumber = registerDTO.Phone,
-                UserName = registerDTO.Email,
-                PersonName = registerDTO.PersonName
-            };
+            ApplicationUser user = new ApplicationUser() { Email = registerDTO.Email, PhoneNumber = registerDTO.Phone, UserName = registerDTO.Email, PersonName = registerDTO.PersonName };
 
-            IdentityResult result = await userManager.CreateAsync(user, registerDTO.Password!);
+            IdentityResult result = await _userManager.CreateAsync(user, registerDTO.Password!);
             if (result.Succeeded)
             {
+                //Sign in
+                await _signInManager.SignInAsync(user, isPersistent: false);
+
                 return RedirectToAction(nameof(PersonsController.Index), "Persons");
             }
             else
@@ -49,6 +56,41 @@ namespace Contacts_manager.Controllers
                 return View(registerDTO);
             }
 
+        }
+
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginDTO loginDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Errors = ModelState.Values.SelectMany(temp => temp.Errors).Select(temp => temp.ErrorMessage);
+                return View(loginDTO);
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(loginDTO.Email!, loginDTO.Password!, isPersistent: false, lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction(nameof(PersonsController.Index), "Persons");
+            }
+
+            ModelState.AddModelError("Login", "Invalid email or password");
+            return View(loginDTO);
+        }
+
+
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction(nameof(PersonsController.Index), "Persons");
         }
     }
 }
